@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Trade</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="add-page">
+    <aside class="sidebar add-sidebar">
+      <a href="index.html" class="btn-back-sidebar">← Back</a>
+    </aside>
+    <main class="add-main">
+      <div class="add-card">
+        <h2>Add Trade</h2>
+        <form id="add-form">
+          <label>Instrument<input name="instrument" required></label>
+          <label>Direction<select name="direction"><option>LONG</option><option>SHORT</option></select></label>
+          <label>Entry Price<input name="entryPrice" type="number" step="any" required></label>
+          <label>Exit Price<input name="exitPrice" type="number" step="any"></label>
+          <label>PnL<input name="pnl" type="number" step="any"></label>
+          <label>Entry Date<input name="entryDate" type="date" required></label>
+          <label>Exit Date<input name="exitDate" type="date"></label>
+          <label>Notes<textarea name="notes"></textarea></label>
+          <div class="modal-actions">
+            <button type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script>
+    const STORAGE_KEY = 'trade_journal_trades_v1';
+    document.getElementById('add-form').addEventListener('submit', e=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      data.entryPrice = data.entryPrice?Number(data.entryPrice):null;
+      data.exitPrice = data.exitPrice?Number(data.exitPrice):null;
+      data.pnl = data.pnl?Number(data.pnl): (data.exitPrice && data.entryPrice ? Number(data.exitPrice)-Number(data.entryPrice) : 0);
+      data.entryDate = data.entryDate || new Date().toISOString();
+      data.exitDate = data.exitDate || null;
+      data.id = 't_'+Date.now()+Math.floor(Math.random()*999);
+      try{ const arr = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); arr.push(data); localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }catch(e){}
+      // try server
+      fetch('/api/trades',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

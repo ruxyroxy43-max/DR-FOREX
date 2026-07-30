@@ -14,26 +14,41 @@
   </script>
 </head>
 <body>
+  <div class="sidebar-backdrop"></div>
   <div class="app">
     <aside class="sidebar">
-      <div class="brand"><div class="logo">RUXY</div><div>RUXY <span style="color:#9b8bff">JOURNAL</span></div></div>
+      <div class="sidebar-top">
+        <div class="brand"><div class="logo">RUXY</div><div class="brand-text">RUXY <span style="color:#9b8bff">JOURNAL</span></div></div>
+      </div>
       <nav>
-        <button id="nav-dashboard" class="active">Dashboard</button>
-        <a href="add.html" class="nav-link add-link">+ Add Trade</a>
-        <button id="nav-journal">Journal</button>
+        <button id="nav-dashboard" class="active"><span class="nav-icon dashboard-icon">⌂</span><span class="nav-label">Dashboard</span></button>
+        <a href="add.html" class="nav-link add-link"><span class="nav-icon add-icon">+</span><span class="nav-label">Add Trade</span></a>
+        <button id="nav-journal"><span class="nav-icon journal-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="12" height="16" rx="2" ry="2"/><line x1="9" y1="7" x2="15" y2="7" stroke="white" stroke-width="1.5" opacity="0.8"/><line x1="9" y1="10" x2="15" y2="10" stroke="white" stroke-width="1.5" opacity="0.8"/><line x1="9" y1="13" x2="15" y2="13" stroke="white" stroke-width="1.5" opacity="0.8"/><path d="M 16 17 L 20 14 L 22 16 L 18 19 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/></svg></span><span class="nav-label">Journal</span></button>
       </nav>
       <div class="sidebar-footer">Local-only • Vercel-ready</div>
     </aside>
 
     <main class="main">
       <header class="main-header">
-        <div>
-          <div class="brand"><span class="small-tag">RUXY</span> Trade Dashboard</div>
-          <p class="subtitle">Track performance, journal trades and export summaries.</p>
+        <div class="header-title">
+          <button class="menu-toggle" aria-label="Open navigation">☰</button>
+          <div>
+            <div class="brand"><span class="small-tag">RUXY</span> Trade Dashboard</div>
+            <p class="subtitle">Track performance, journal trades and export summaries.</p>
+          </div>
         </div>
-        <div class="actions">
-          <button id="btn-export-csv">Export CSV</button>
-          <button id="btn-export-pdf">Export PDF</button>
+        <div class="header-actions">
+          <div class="display-mode-dropdown">
+            <button class="dropdown-btn">$ Dollar</button>
+            <div class="dropdown-menu">
+              <button data-mode="dollar">$ Dollar</button>
+              <button data-mode="percentage">% Percentage</button>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="btn-export-csv">Export CSV</button>
+            <button id="btn-export-pdf">Export PDF</button>
+          </div>
         </div>
       </header>
 

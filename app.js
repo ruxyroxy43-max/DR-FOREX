@@ -10,6 +10,10 @@
   const navJournal = document.getElementById('nav-journal');
   const views = document.querySelectorAll('.view');
   const tableBody = document.querySelector('#trade-table tbody');
+  const menuToggle = document.querySelector('.menu-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarBackdrop = document.querySelector('.sidebar-backdrop');
+  const sidebarClose = document.querySelector('.sidebar-close');
   const allTradesWrap = document.getElementById('all-trades');
   const calendarEl = document.getElementById('calendar');
   const panelNarrative = document.getElementById('panel-narrative');
@@ -18,17 +22,64 @@
   const panelMistakes = document.getElementById('panel-mistakes');
   const panelLesson = document.getElementById('panel-lesson');
 
+  // Display mode management
+  let displayMode = 'dollar';
+  const dropdownBtn = document.querySelector('.dropdown-btn');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+  const modeButtons = document.querySelectorAll('.dropdown-menu button');
+
   function $(s){return document.querySelector(s)}
 
   // navigation
   navDashboard.addEventListener('click', ()=>showView('dashboard'));
   navJournal.addEventListener('click', ()=>showView('journal'));
+  function closeSidebar(){
+    if(sidebar) sidebar.classList.remove('open');
+    if(sidebarBackdrop) sidebarBackdrop.classList.remove('show');
+    document.body.classList.remove('sidebar-open');
+  }
+  function openSidebar(){
+    if(sidebar) sidebar.classList.add('open');
+    if(sidebarBackdrop) sidebarBackdrop.classList.add('show');
+    document.body.classList.add('sidebar-open');
+  }
   function showView(id){
     views.forEach(v=>v.id===id?v.classList.remove('hidden'):v.classList.add('hidden'));
     document.querySelectorAll('.sidebar nav button').forEach(b=>b.classList.remove('active'));
     const btn = document.getElementById('nav-'+id);
     if(btn) btn.classList.add('active');
+    closeSidebar();
   }
+  if(menuToggle){menuToggle.addEventListener('click', ()=>{
+    if(window.innerWidth > 760){
+      sidebar?.classList.toggle('sidebar-collapsed');
+      return;
+    }
+    if(sidebar?.classList.contains('open')) closeSidebar(); else openSidebar();
+  });}
+  if(sidebarClose){sidebarClose.addEventListener('click', closeSidebar);}
+  if(sidebarBackdrop){sidebarBackdrop.addEventListener('click', closeSidebar);}
+  document.querySelectorAll('.sidebar nav button, .sidebar nav a').forEach(link=>link.addEventListener('click', closeSidebar));
+  window.addEventListener('resize', ()=>{ if(window.innerWidth > 760) closeSidebar(); });
+
+  // Dropdown mode toggle
+  if(dropdownBtn){
+    dropdownBtn.addEventListener('click', ()=>dropdownMenu.classList.toggle('show'));
+  }
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('.display-mode-dropdown')) dropdownMenu?.classList.remove('show');
+  });
+  modeButtons.forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      displayMode = e.target.dataset.mode;
+      dropdownBtn.textContent = displayMode==='dollar'?'$ Dollar':'% Percentage';
+      modeButtons.forEach(b=>b.classList.remove('active'));
+      e.target.classList.add('active');
+      dropdownMenu.classList.remove('show');
+      refreshAll();
+    });
+  });
+  if(modeButtons.length>0) modeButtons[0].classList.add('active');
 
   // detect server
   async function detectServer(){
@@ -69,10 +120,24 @@
     const total = trades.length;
     const winRate = total?Math.round((wins/total)*100):0;
     const profitFactor = computeProfitFactor();
-    $('#netpnl').textContent = `$${net.toFixed(2)}`;
+    
+    // Format based on display mode
+    let netDisplay, profitFactorDisplay;
+    if(displayMode==='percentage'){
+      // Always show percentage when in percentage mode
+      const costBasis = trades.reduce((s,t)=>s+(Math.abs(Number(t.entryPrice)||0)),0);
+      netDisplay = costBasis>0? ((net/costBasis)*100).toFixed(2)+'%': '0.00%';
+      profitFactorDisplay = profitFactor.toFixed(2);
+    } else {
+      // Show dollar amount in dollar mode
+      netDisplay = `$${net.toFixed(2)}`;
+      profitFactorDisplay = profitFactor.toFixed(2);
+    }
+    
+    $('#netpnl').textContent = netDisplay;
     $('#netpnl-sub').textContent = `${total} closed trades`;
     $('#winrate').textContent = `${winRate}%`;
-    $('#profitfactor').textContent = `${profitFactor.toFixed(2)}`;
+    $('#profitfactor').textContent = profitFactorDisplay;
     $('#totaltrades').textContent = `${total}`;
     $('#avgwl').textContent = computeAvgWL();
     $('#daywin').textContent = computeDayWinRate() + '%';

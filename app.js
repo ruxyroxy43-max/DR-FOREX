@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'openbook-data-v1';
 const SESSION_KEY = 'openbook-session-v1';
+const THEME_KEY = 'openbook-theme';
 const ADMIN_NAME = 'STYVE';
 const ADMIN_PASSWORD = 'admin';
 const app = document.querySelector('#app');
@@ -65,6 +66,13 @@ let sessionPrepLoadedKey = '';
 let sessionPrepImages = [];
 let sessionPrepSaveTimer;
 let journalFilters = { query: '', status: 'Latest', pair: 'All pairs', account: 'All accounts', from: '', to: '' };
+let darkTheme = localStorage.getItem(THEME_KEY) === 'dark';
+
+function toggleTheme() {
+  darkTheme = !darkTheme;
+  localStorage.setItem(THEME_KEY, darkTheme ? 'dark' : 'light');
+  renderWorkspace();
+}
 
 function saveData(next = data) {
   data = next;
@@ -877,7 +885,7 @@ function adminContent(view) {
   const rows = activity.length ? activity.map((user) => `<tr>
     <td class="ticker-cell">${escapeHtml(user.username)}</td><td>${view === 'accounts' ? data.trades.filter((trade) => trade.username === user.username).length : formatDate(user.createdAt)}</td>
     <td><span class="badge ${escapeAttribute(user.status)}">${escapeHtml(user.status)}</span></td>
-    <td>${user.status === 'pending' ? `<div class="approval-actions"><button class="approve-button" type="button" data-action="approve" data-user="${escapeAttribute(user.username)}">Approve</button><button class="reject-button" type="button" data-action="reject" data-user="${escapeAttribute(user.username)}">Decline</button></div>` : user.role === 'admin' ? '<span class="status-note">Admin account</span>' : `<div class="approval-actions"><button class="ghost-button" type="button" data-action="${user.status === 'disabled' ? 'enable' : 'disable'}" data-user="${escapeAttribute(user.username)}">${user.status === 'disabled' ? 'Enable' : 'Disable'}</button><button class="ghost-button" type="button" data-action="reset-password" data-user="${escapeAttribute(user.username)}">Reset password</button>${user.status === 'approved' ? `<button class="ghost-button" type="button" data-action="impersonate" data-user="${escapeAttribute(user.username)}">Open account</button>` : ''}</div>`}</td>
+    <td>${user.status === 'pending' ? `<div class="approval-actions"><button class="approve-button" type="button" data-action="approve" data-user="${escapeAttribute(user.username)}">Approve</button><button class="reject-button" type="button" data-action="reject" data-user="${escapeAttribute(user.username)}">Decline</button></div>` : user.role === 'admin' ? '<span class="status-note">Admin account</span>' : `<div class="approval-actions"><button class="ghost-button" type="button" data-action="${user.status === 'disabled' ? 'enable' : 'disable'}" data-user="${escapeAttribute(user.username)}">${user.status === 'disabled' ? 'Enable' : 'Disable'}</button><button class="ghost-button" type="button" data-action="set-password" data-user="${escapeAttribute(user.username)}">Set password</button><button class="ghost-button" type="button" data-action="reset-password" data-user="${escapeAttribute(user.username)}">Email reset</button>${user.status === 'approved' ? `<button class="ghost-button" type="button" data-action="impersonate" data-user="${escapeAttribute(user.username)}">Open account</button>` : ''}</div>`}</td>
   </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><strong>All caught up</strong>${view === 'verification' ? 'There are no accounts waiting for review.' : 'No accounts to display yet.'}</div></td></tr>`;
   const recommendations = `<section class="panel recommendations-panel"><div class="panel-head"><h2>Recommended actions</h2><span class="panel-kicker">BASED ON ACCOUNT ACTIVITY</span></div><div class="recommendation-list">
     <article class="recommendation"><span class="recommendation-icon priority">!</span><div class="recommendation-copy"><strong>${pending.length ? `Review ${pending.length} pending ${pending.length === 1 ? 'request' : 'requests'}` : 'No accounts awaiting approval'}</strong><span>${pending.length ? 'New users are waiting for access to their journals.' : 'All new account requests have been handled.'}</span></div><button class="recommendation-link" type="button" data-view="verification">${pending.length ? 'Review requests' : 'View queue'} &#8594;</button></article>
@@ -904,12 +912,12 @@ function renderWorkspace() {
   const title = activeView === 'add-trade' ? 'Add trade' : activeView === 'edit-trade' ? 'Edit trade' : items.find((item) => item.id === activeView)?.label || 'Dashboard';
   const userLabel = isAdmin ? 'Administrator' : 'Trader account';
   app.innerHTML = `
-    <main class="workspace${isAdmin ? '' : ' trader-theme'}">
+    <main class="workspace${isAdmin ? '' : ' trader-theme'} ${darkTheme ? 'dark-theme' : 'light-theme'}">
       <aside class="sidebar">
         <a class="brand" href="#" data-action="home"><span class="brand-mark">O</span>openbook</a>
         <div class="sidebar-section">Workspace</div>
         <nav class="nav-list ${isAdmin ? 'admin-nav' : 'user-nav'}" aria-label="Main navigation">${items.map((item) => `<button class="nav-item${activeView === item.id ? ' active' : ''}" type="button" data-view="${item.id}"${activeView === item.id ? ' aria-current="page"' : ''}><span class="nav-icon" aria-hidden="true">${item.icon}</span>${item.label}${item.count ? `<span class="nav-count">${item.count}</span>` : ''}</button>`).join('')}</nav>
-        <div class="sidebar-bottom"><div class="profile"><span class="avatar${isAdmin ? ' coral' : ''}">${initials(session.username)}</span><span class="profile-copy"><strong>${escapeHtml(session.username)}</strong><span>${userLabel}</span></span><button class="logout-button" type="button" data-action="logout" title="Sign out" aria-label="Sign out">&#8599;</button></div></div>
+        <div class="sidebar-bottom"><button class="theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light theme' : '◐ Dark theme'}</button><div class="profile"><span class="avatar${isAdmin ? ' coral' : ''}">${initials(session.username)}</span><span class="profile-copy"><strong>${escapeHtml(session.username)}</strong><span>${userLabel}</span></span><button class="logout-button" type="button" data-action="logout" title="Sign out" aria-label="Sign out">&#8599;</button></div></div>
       </aside>
       <section class="main-area">
         <header class="topbar"><span class="mobile-brand"><span class="brand-mark">O</span>openbook</span><span class="topbar-label">${escapeHtml(title)}</span><span class="topbar-date">${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span></header>
@@ -1110,6 +1118,17 @@ function openAccountSizeModal() {
   backdrop.querySelector('#account-size').focus();
 }
 
+function openAdminPasswordModal(username) {
+  const user = data.users.find((entry) => entry.username === username);
+  if (!user || user.role === 'admin') return showToast('The administrator password cannot be changed from this user list.');
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-password-title"><div class="modal-head"><div><h2 id="admin-password-title">Set password for ${escapeHtml(user.username)}</h2><p>This securely replaces the password; existing passwords remain unreadable.</p></div><button class="modal-close" type="button" data-action="close-modal" aria-label="Close">&times;</button></div>
+    <form id="admin-password-form"><input type="hidden" name="userId" value="${escapeAttribute(user.id)}"/><div class="field"><label for="admin-new-password">New password</label><div class="password-wrap"><input id="admin-new-password" name="password" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /><button class="password-toggle" type="button" data-action="toggle-admin-password">SHOW</button></div><span class="field-hint">Use at least 8 characters. The password will not be displayed after saving.</span></div><div class="modal-actions"><button class="ghost-button" type="button" data-action="close-modal">Cancel</button><button class="primary-button" type="submit">Save new password</button></div></form></section>`;
+  app.append(backdrop);
+  backdrop.querySelector('#admin-new-password').focus();
+}
+
 function openCloseTradeModal(tradeId) {
   const trade = data.trades.find((entry) => entry.id === tradeId && entry.result === 'Open');
   if (!trade) return;
@@ -1279,6 +1298,25 @@ app.addEventListener('submit', async (event) => {
     showToast(existingNote ? 'Notebook note updated.' : 'Note saved to your notebook.');
   }
   if (form.id === 'session-prep-form') saveSessionPrep(true);
+  if (form.id === 'admin-password-form') {
+    const submit = form.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    try {
+      const { data: authSession } = await supabaseClient.auth.getSession();
+      const response = await fetch('/api/admin-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authSession.session?.access_token || ''}` },
+        body: JSON.stringify({ userId: form.elements.userId.value, password: form.elements.password.value }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Password update failed.');
+      form.closest('.modal-backdrop')?.remove();
+      showToast('Password updated securely.');
+    } catch (error) {
+      showToast(error.message);
+      submit.disabled = false;
+    }
+  }
 });
 
 app.addEventListener('click', async (event) => {
@@ -1291,6 +1329,10 @@ app.addEventListener('click', async (event) => {
   const actionButton = event.target.closest('[data-action]');
   if (!actionButton) return;
   const action = actionButton.dataset.action;
+  if (action === 'toggle-theme') {
+    toggleTheme();
+    return;
+  }
   if (action === 'view-trade') openTradeDetails(actionButton.dataset.trade);
   if (action === 'edit-detail-trade') {
     const tradeId = actionButton.dataset.trade;
@@ -1309,6 +1351,13 @@ app.addEventListener('click', async (event) => {
     input.type = visible ? 'password' : 'text';
     actionButton.textContent = visible ? 'SHOW' : 'HIDE';
     actionButton.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+  }
+  if (action === 'toggle-admin-password') {
+    const input = document.querySelector('#admin-new-password');
+    if (!input) return;
+    const visible = input.type === 'text';
+    input.type = visible ? 'password' : 'text';
+    actionButton.textContent = visible ? 'SHOW' : 'HIDE';
   }
   if (action === 'logout' || action === 'home') {
     event.preventDefault();
@@ -1458,6 +1507,7 @@ app.addEventListener('click', async (event) => {
     if (error) return showToast('Could not send the password reset email.');
     showToast(`Password reset email sent to ${user.email}.`);
   }
+  if (action === 'set-password') openAdminPasswordModal(actionButton.dataset.user);
 });
 
 app.addEventListener('keydown', (event) => {

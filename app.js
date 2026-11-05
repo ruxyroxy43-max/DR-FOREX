@@ -839,6 +839,11 @@ function userContent(view) {
   const streakClass = metrics.streakResult === 'Loss' ? 'negative' : 'positive';
   const streakNote = metrics.streakResult ? `${metrics.streakResult.toLowerCase()} streak` : metrics.breakevens && trades.at(0)?.result === 'Breakeven' ? 'Last trade was breakeven' : 'No active streak';
   const metricCards = `${metricCard('Net P&amp;L', formatMoney(metrics.pnl), 'Realized · closed trades', metrics.pnl >= 0 ? 'positive' : 'negative')}${metricCard('Avg win', metrics.averageWin === null ? '—' : formatMoney(metrics.averageWin), `${metrics.wins} winning trades`)}${metricCard('Win rate', `${metrics.winRate}%`, `${metrics.wins}W · ${metrics.losses}L · ${metrics.breakevens}BE`)}${metricCard('Profit factor', metrics.profitFactor, 'Gross wins ÷ gross losses')}${metricCard('Max drawdown', formatMoney(-metrics.maxDrawdown), 'Peak to trough', metrics.maxDrawdown ? 'negative' : '')}${metricCard('Avg loss', metrics.averageLoss === null ? '—' : formatMoney(-metrics.averageLoss), `${metrics.losses} losing trades`)}${metricCard('Current streak', streakValue, streakNote, streakClass)}${metricCard('Best trade', formatMoney(metrics.best), 'Highest realized P&amp;L', 'positive')}${metricCard('Worst trade', formatMoney(metrics.worst), 'Lowest realized P&amp;L', metrics.worst < 0 ? 'negative' : '')}${metricCard('ROI', '—', 'Add account size to calculate')}${metricCard('Total trades', trades.length, `${trades.length - metrics.openCount} closed · ${metrics.openCount} open`)}${metricCard('Open positions', metrics.openCount, 'Unrealized P&amp;L not included')}`;
+  const userRecommendations = `<section class="panel recommendations-panel user-recommendations"><div class="panel-head"><h2>Suggestions for your next session</h2><span class="panel-kicker">PERSONALIZED</span></div><div class="recommendation-list">
+    <article class="recommendation"><span class="recommendation-icon priority">!</span><div class="recommendation-copy"><strong>${trades.length ? 'Review your latest trade' : 'Log your first trade'}</strong><span>${trades.length ? 'Capture what worked, what failed, and what you will repeat.' : 'Record the setup and reasoning while the decision is still fresh.'}</span></div><button class="recommendation-link" type="button" data-view="${trades.length ? 'journal' : 'add-trade'}">${trades.length ? 'Open journal' : 'Log trade'} &#8594;</button></article>
+    <article class="recommendation"><span class="recommendation-icon">&#9670;</span><div class="recommendation-copy"><strong>${metrics.openCount ? `Review ${metrics.openCount} open position${metrics.openCount === 1 ? '' : 's'}` : 'Prepare before the market opens'}</strong><span>${metrics.openCount ? 'Check risk and define the invalidation level before changing the position.' : 'Write your bias, key levels, and news to watch in Session Prep.'}</span></div><button class="recommendation-link" type="button" data-view="${metrics.openCount ? 'journal' : 'session-prep'}">${metrics.openCount ? 'View positions' : 'Start prep'} &#8594;</button></article>
+    <article class="recommendation"><span class="recommendation-icon">&#8599;</span><div class="recommendation-copy"><strong>${data.users.find((user) => user.username === session.username)?.accountSize ? 'Track your risk consistently' : 'Add your account size'}</strong><span>${data.users.find((user) => user.username === session.username)?.accountSize ? 'Use the analytics and calendar together to monitor consistency.' : 'Set it once to calculate ROI and make your performance easier to compare.'}</span></div><button class="recommendation-link" type="button" data-action="${data.users.find((user) => user.username === session.username)?.accountSize ? 'view-analytics' : 'set-account-size'}">${data.users.find((user) => user.username === session.username)?.accountSize ? 'View analytics' : 'Set account size'} &#8594;</button></article>
+  </div></section>`;
   if (view === 'analytics') return `
     <div class="page-heading"><div><h1>Analytics</h1><p>Your decisions, measured over time.</p></div></div>
     <section class="metric-grid" aria-label="Trading performance summary">${metricCards}</section>
@@ -849,7 +854,7 @@ function userContent(view) {
 
   return `
     <div class="page-heading"><div><h1>Good ${greeting()}, ${escapeHtml(session.username.toLowerCase())}.</h1><p>Here's your trading activity at a glance.</p></div><div class="heading-actions"><button class="ghost-button start-day-button" type="button" data-view="session-prep">&#10022; Start my day</button><button class="primary-button" type="button" data-action="add-trade"><span aria-hidden="true">+</span> <span class="button-word">Log a trade</span></button></div></div>
-    <div class="trader-overview-grid"><section class="metric-grid trader-metrics" aria-label="Trading performance summary">${metricCards}</section>${monthCalendar(trades)}</div>
+    ${userRecommendations}<div class="trader-overview-grid"><section class="metric-grid trader-metrics" aria-label="Trading performance summary">${metricCards}</section>${monthCalendar(trades)}</div>
     <div class="score-insights-grid"><div class="score-column"><section class="panel performance-score-panel"><div class="panel-head"><div><h2>Performance score</h2><span class="panel-kicker">JOURNAL METRICS</span></div><span class="panel-kicker">5 FACTORS</span></div><div class="score-content">${performanceRadar(metrics)}<div class="score-result"><strong>${metrics.performanceScore}</strong><span>YOUR SCORE</span><b>${metrics.performanceScore >= 80 ? 'Strong habits' : metrics.performanceScore >= 60 ? 'Building consistency' : metrics.performanceScore ? 'Room to improve' : 'Log closed trades to begin'}</b></div></div><p class="score-disclaimer">Composite of win rate, average win/loss, profit factor, profitable days, and drawdown control.</p></section>${progressTracker(metrics)}</div><div class="insights-stack">${recentActivityPanel(trades)}<div class="breakdown-grid">${winRatePanel(trades, 'model', 'Win rate by model')}${winRatePanel(trades, 'session', 'Win rate by session')}</div>${weekdayPanel(trades)}</div></div>`;
 }
 
@@ -877,6 +882,7 @@ function metricCard(label, value, note, valueClass = '') {
 function adminContent(view) {
   const pending = data.users.filter((user) => user.status === 'pending');
   const approved = data.users.filter((user) => user.status === 'approved');
+  const disabled = data.users.filter((user) => user.status === 'disabled');
   const inactive = approved.filter((user) => !data.trades.some((trade) => trade.username === user.username));
   const recentUsers = [...data.users].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const activity = view === 'verification' ? pending : recentUsers;
@@ -890,6 +896,7 @@ function adminContent(view) {
   const recommendations = `<section class="panel recommendations-panel"><div class="panel-head"><h2>Recommended actions</h2><span class="panel-kicker">BASED ON ACCOUNT ACTIVITY</span></div><div class="recommendation-list">
     <article class="recommendation"><span class="recommendation-icon priority">!</span><div class="recommendation-copy"><strong>${pending.length ? `Review ${pending.length} pending ${pending.length === 1 ? 'request' : 'requests'}` : 'No accounts awaiting approval'}</strong><span>${pending.length ? 'New users are waiting for access to their journals.' : 'All new account requests have been handled.'}</span></div><button class="recommendation-link" type="button" data-view="verification">${pending.length ? 'Review requests' : 'View queue'} &#8594;</button></article>
     <article class="recommendation"><span class="recommendation-icon">&#8599;</span><div class="recommendation-copy"><strong>${inactive.length ? `Welcome ${inactive.length} approved ${inactive.length === 1 ? 'trader' : 'traders'}` : 'Trader activity is underway'}</strong><span>${inactive.length ? 'These approved accounts have not logged a journal entry yet.' : 'Every approved account has at least one journal entry.'}</span></div><button class="recommendation-link" type="button" data-view="accounts">View accounts &#8594;</button></article>
+    <article class="recommendation"><span class="recommendation-icon">&#9881;</span><div class="recommendation-copy"><strong>${disabled.length ? `${disabled.length} account${disabled.length === 1 ? '' : 's'} disabled` : 'Keep account access healthy'}</strong><span>${disabled.length ? 'Review disabled accounts and re-enable trusted users when appropriate.' : 'Check account activity regularly and send reset emails when users need help.'}</span></div><button class="recommendation-link" type="button" data-view="accounts">Manage access &#8594;</button></article>
   </div></section>`;
   const columnLabel = view === 'accounts' ? 'Journal entries' : 'Requested';
   return `
@@ -920,7 +927,7 @@ function renderWorkspace() {
         <div class="sidebar-bottom"><button class="theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light theme' : '◐ Dark theme'}</button><div class="profile"><span class="avatar${isAdmin ? ' coral' : ''}">${initials(session.username)}</span><span class="profile-copy"><strong>${escapeHtml(session.username)}</strong><span>${userLabel}</span></span><button class="logout-button" type="button" data-action="logout" title="Sign out" aria-label="Sign out">&#8599;</button></div></div>
       </aside>
       <section class="main-area">
-        <header class="topbar"><span class="mobile-brand"><span class="brand-mark">O</span>openbook</span><span class="topbar-label">${escapeHtml(title)}</span><span class="topbar-date">${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span></header>
+        <header class="topbar"><span class="mobile-brand"><span class="brand-mark">O</span>openbook</span><span class="topbar-label">${escapeHtml(title)}</span><span class="topbar-actions"><span class="topbar-date">${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span><button class="topbar-theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light' : '◐ Dark'}</button></span></header>
         <div class="content">${impersonationBanner}${isAdmin ? adminContent(activeView) : userContent(activeView)}</div>
       </section>
     </main>`;
@@ -1470,6 +1477,10 @@ app.addEventListener('click', async (event) => {
       .catch(() => showToast('Copy unavailable here. Trade data remains local to this browser.'));
   }
   if (action === 'set-account-size') openAccountSizeModal();
+  if (action === 'view-analytics') {
+    activeView = 'analytics';
+    renderWorkspace();
+  }
   if (action === 'calendar-prev') { calendarOffset -= 1; renderWorkspace(); }
   if (action === 'calendar-next') { calendarOffset += 1; renderWorkspace(); }
   if (action === 'calendar-current') { calendarOffset = 0; renderWorkspace(); }

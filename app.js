@@ -154,6 +154,8 @@ async function loadSupabaseSession(authUser) {
     session = null;
     authMessage = ownProfile.status === 'rejected'
       ? 'This account was not approved. Contact your administrator.'
+      : ownProfile.status === 'disabled'
+        ? 'This account is disabled. Contact your administrator.'
       : 'Your account is waiting for admin approval.';
     renderAuth();
     return;
@@ -182,6 +184,7 @@ async function loadSupabaseSession(authUser) {
   const users = profiles.map((profile) => ({
     id: profile.id,
     username: profile.username,
+    email: profile.email || '',
     status: profile.status,
     role: profile.role,
     createdAt: profile.created_at,
@@ -874,7 +877,7 @@ function adminContent(view) {
   const rows = activity.length ? activity.map((user) => `<tr>
     <td class="ticker-cell">${escapeHtml(user.username)}</td><td>${view === 'accounts' ? data.trades.filter((trade) => trade.username === user.username).length : formatDate(user.createdAt)}</td>
     <td><span class="badge ${escapeAttribute(user.status)}">${escapeHtml(user.status)}</span></td>
-    <td>${user.status === 'pending' ? `<div class="approval-actions"><button class="approve-button" type="button" data-action="approve" data-user="${escapeAttribute(user.username)}">Approve</button><button class="reject-button" type="button" data-action="reject" data-user="${escapeAttribute(user.username)}">Decline</button></div>` : user.status === 'approved' && user.role !== 'admin' ? `<button class="ghost-button" type="button" data-action="impersonate" data-user="${escapeAttribute(user.username)}">Open account</button>` : `<span class="status-note">${user.status === 'approved' ? 'Admin account' : 'Access declined'}</span>`}</td>
+    <td>${user.status === 'pending' ? `<div class="approval-actions"><button class="approve-button" type="button" data-action="approve" data-user="${escapeAttribute(user.username)}">Approve</button><button class="reject-button" type="button" data-action="reject" data-user="${escapeAttribute(user.username)}">Decline</button></div>` : user.role === 'admin' ? '<span class="status-note">Admin account</span>' : `<div class="approval-actions"><button class="ghost-button" type="button" data-action="${user.status === 'disabled' ? 'enable' : 'disable'}" data-user="${escapeAttribute(user.username)}">${user.status === 'disabled' ? 'Enable' : 'Disable'}</button><button class="ghost-button" type="button" data-action="reset-password" data-user="${escapeAttribute(user.username)}">Reset password</button>${user.status === 'approved' ? `<button class="ghost-button" type="button" data-action="impersonate" data-user="${escapeAttribute(user.username)}">Open account</button>` : ''}</div>`}</td>
   </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><strong>All caught up</strong>${view === 'verification' ? 'There are no accounts waiting for review.' : 'No accounts to display yet.'}</div></td></tr>`;
   const recommendations = `<section class="panel recommendations-panel"><div class="panel-head"><h2>Recommended actions</h2><span class="panel-kicker">BASED ON ACCOUNT ACTIVITY</span></div><div class="recommendation-list">
     <article class="recommendation"><span class="recommendation-icon priority">!</span><div class="recommendation-copy"><strong>${pending.length ? `Review ${pending.length} pending ${pending.length === 1 ? 'request' : 'requests'}` : 'No accounts awaiting approval'}</strong><span>${pending.length ? 'New users are waiting for access to their journals.' : 'All new account requests have been handled.'}</span></div><button class="recommendation-link" type="button" data-view="verification">${pending.length ? 'Review requests' : 'View queue'} &#8594;</button></article>
@@ -927,7 +930,16 @@ async function handleLogin(form) {
       email: form.elements.email.value.trim(),
       password: form.elements.password.value,
     });
-    if (error) return setNotice('Email or password was not recognized.', true);
+    if (error) {
+      const networkFailure = !error.status
+        || /fetch|network|failed to load|connection|dns|resolve/i.test(`${error.name || ''} ${error.message || ''}`);
+      return setNotice(
+        networkFailure
+          ? 'Supabase could not be reached. The deployment is using an invalid or unavailable Supabase project URL. Contact the administrator.'
+          : 'Email or password was not recognized.',
+        true,
+      );
+    }
     try {
       await loadSupabaseSession(authResult.user);
     } catch (workspaceError) {
@@ -1418,10 +1430,10 @@ app.addEventListener('click', (event) => {
   }
   if (action === 'close-position') openCloseTradeModal(actionButton.dataset.trade);
   if (action === 'close-modal') actionButton.closest('.modal-backdrop')?.remove();
-  if (action === 'approve' || action === 'reject') {
+  if (action === 'approve' || action === 'reject' || action === 'enable' || action === 'disable') {
     const user = data.users.find((entry) => entry.username === actionButton.dataset.user);
-    if (!user || user.status !== 'pending') return;
-    const status = action === 'approve' ? 'approved' : 'rejected';
+    if (!user || (action === 'approve' || action === 'reject') && user.status !== 'pending') return;
+    const status = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : action === 'disable' ? 'disabled' : 'approved';
     if (supabaseClient) {
       supabaseClient.from('profiles').update({ status }).eq('id', user.id).then(({ error }) => {
         if (error) {
@@ -1430,14 +1442,21 @@ app.addEventListener('click', (event) => {
         }
         user.status = status;
         renderWorkspace();
-        showToast(`${user.username} ${action === 'approve' ? 'approved' : 'declined'}.`);
+        showToast(`${user.username} ${action === 'approve' ? 'approved' : action === 'reject' ? 'declined' : status === 'disabled' ? 'disabled' : 'enabled'}.`);
       });
     } else {
       user.status = status;
       saveData();
       renderWorkspace();
-      showToast(`${user.username} ${action === 'approve' ? 'approved' : 'declined'}.`);
+      showToast(`${user.username} ${action === 'approve' ? 'approved' : action === 'reject' ? 'declined' : status === 'disabled' ? 'disabled' : 'enabled'}.`);
     }
+  }
+  if (action === 'reset-password') {
+    const user = data.users.find((entry) => entry.username === actionButton.dataset.user);
+    if (!user || !supabaseClient || !user.email) return showToast('This account has no email address available for a password reset.');
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(user.email, { redirectTo: location.origin });
+    if (error) return showToast('Could not send the password reset email.');
+    showToast(`Password reset email sent to ${user.email}.`);
   }
 });
 

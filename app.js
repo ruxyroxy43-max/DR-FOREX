@@ -1281,7 +1281,7 @@ app.addEventListener('submit', async (event) => {
   if (form.id === 'session-prep-form') saveSessionPrep(true);
 });
 
-app.addEventListener('click', (event) => {
+app.addEventListener('click', async (event) => {
   const viewButton = event.target.closest('[data-view]');
   if (viewButton) {
     activeView = viewButton.dataset.view;

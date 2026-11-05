@@ -392,6 +392,39 @@ td .mono { font-size: 10px; }
 .direction-tag.long { color: #32d084; }
 .direction-tag.short { color: #ef7277; }
 .trader-theme .badge.open { color: #b19cff; background: #302a46; }
+.theme-toggle { width: 100%; min-height: 34px; margin-bottom: 14px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; color: var(--muted); background: transparent; cursor: pointer; font-size: 11px; text-align: left; }
+.theme-toggle:hover { color: var(--ink); border-color: var(--green); }
+.dark-theme { --surface: #1a1b22; --ink: #f1f0f6; --muted: #92939f; --line: #30313a; --green-light: #173a2c; --coral-light: #3b2529; color-scheme: dark; color: var(--ink); background: #111217; }
+.dark-theme .sidebar { border-color: #2b2c35; background: #15161c; }
+.dark-theme .sidebar-section { color: #797a87; }
+.dark-theme .nav-item { color: #a5a5b0; }
+.dark-theme .nav-item:hover { color: var(--ink); background: #22232c; }
+.dark-theme .nav-item.active { color: #b7a8ff; background: #242331; box-shadow: inset 2px 0 #8467ff; }
+.dark-theme .topbar { border-color: #2d2e37; background: #17181e; }
+.dark-theme .topbar-label { color: #aaaab5; }
+.dark-theme .topbar-date, .dark-theme .profile-copy span, .dark-theme .logout-button { color: #858692; }
+.dark-theme .panel, .dark-theme .metric { border-color: #30313a; background: #1a1b22; }
+.dark-theme .panel-head, .dark-theme td { border-color: #30313a; }
+.dark-theme .panel-head h2, .dark-theme .metric-value { color: #eeedf4; }
+.dark-theme .panel-kicker, .dark-theme .metric-label, .dark-theme .metric-note { color: #868793; }
+.dark-theme th { color: #91929e; background: #202128; }
+.dark-theme .empty-state { color: #9b9ca7; }
+.dark-theme .empty-state strong { color: #efedf5; }
+.dark-theme .field input, .dark-theme .field select, .dark-theme .field textarea { border-color: #3b3c47; color: var(--ink); background: #202128; }
+.dark-theme .theme-toggle { border-color: #3b3c47; }
+.light-theme.trader-theme { --surface: #fffefa; --ink: #202522; --muted: #788079; --line: #e4e5df; --green-light: #e8f1eb; --coral-light: #f7e9e4; color-scheme: light; color: var(--ink); background: #f5f4ef; }
+.light-theme.trader-theme .sidebar { border-color: var(--line); background: #faf9f5; }
+.light-theme.trader-theme .nav-item { color: #707970; }
+.light-theme.trader-theme .nav-item:hover { color: var(--ink); background: #f0f0eb; }
+.light-theme.trader-theme .nav-item.active { color: #205d46; background: #e9f0e9; box-shadow: none; }
+.light-theme.trader-theme .topbar { border-color: var(--line); background: var(--surface); }
+.light-theme.trader-theme .topbar-label, .light-theme.trader-theme .metric-value, .light-theme.trader-theme .panel-head h2 { color: var(--ink); }
+.light-theme.trader-theme .topbar-date, .light-theme.trader-theme .profile-copy span, .light-theme.trader-theme .logout-button, .light-theme.trader-theme .metric-label, .light-theme.trader-theme .metric-note, .light-theme.trader-theme .panel-kicker { color: var(--muted); }
+.light-theme.trader-theme .panel, .light-theme.trader-theme .metric { border-color: var(--line); background: var(--surface); }
+.light-theme.trader-theme .panel-head, .light-theme.trader-theme td { border-color: var(--line); }
+.light-theme.trader-theme th { color: var(--muted); background: #faf9f5; }
+.light-theme.trader-theme .empty-state { color: var(--muted); }
+.light-theme.trader-theme .empty-state strong { color: var(--ink); }
 .close-trade-button { padding: 5px 8px; border: 1px solid #49425f; color: #c5b8ff; background: #24212e; cursor: pointer; font-size: 8px; }
 .breakdown-panel .panel-head { min-height: 47px; }
 .breakdown-panel .panel-head h2, .weekday-panel .panel-head h2 { text-transform: uppercase; }

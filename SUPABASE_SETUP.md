@@ -43,3 +43,12 @@ Keep the admin password private. New user profiles default to `pending`; an appr
 - Existing demo trades and notes remain in local browser storage. They are not automatically uploaded to Supabase.
 - Approved administrators can open an approved user's workspace from **Accounts** without knowing that user's password. The workspace shows an impersonation banner and a **Return to admin** action. This is an administrative workspace view, not a second Supabase login.
 - Apply the SQL before deploying the app with the environment variables configured.
+
+
+## Account management
+
+New users register with an email address, username, and password of at least 8 characters. They remain `pending` until an approved administrator approves them. Administrators can approve, reject, disable, and re-enable accounts from the Accounts panel. Disabled accounts cannot sign in until re-enabled.
+
+Administrators can send a password-reset email to a user. Supabase stores passwords as secure hashes, so plaintext passwords are never viewable by the administrator. Users must use the reset link to choose a new password.
+
+Profile statuses are `pending`, `approved`, `rejected`, and `disabled`. Hosted users sign in with their registered email address and password from any device or Chrome profile.

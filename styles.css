@@ -487,6 +487,7 @@ td .mono { font-size: 10px; }
 .recommendation-copy span { margin-top: 4px; color: var(--muted); font-size: 10px; }
 .recommendation-link { flex: 0 0 auto; padding: 7px 9px; border: 1px solid var(--line); color: var(--green); background: var(--surface); cursor: pointer; font-size: 9px; font-weight: 600; }
 .recommendation-link:hover { border-color: #aeb8af; background: #f7f8f3; }
+.account-email { display: block; margin-top: 4px; color: var(--muted); font: 10px var(--mono); font-weight: 400; }
 
 /* Journal filters and trade cards */
 .journal-heading { margin-bottom: 18px; }

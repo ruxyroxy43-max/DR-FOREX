@@ -3,11 +3,13 @@ const SESSION_KEY = 'openbook-session-v1';
 const THEME_KEY = 'openbook-theme';
 const ADMIN_NAME = 'STYVE';
 const ADMIN_PASSWORD = 'admin';
+const INACTIVITY_TIMEOUT = 3 * 60 * 1000;
 const app = document.querySelector('#app');
 let supabaseClient = null;
 let backendUnavailable = false;
 let authMessage = '';
 let authMode = 'login';
+let inactivityTimer = null;
 
 const daysAgo = (days) => {
   const date = new Date();
@@ -72,6 +74,12 @@ function toggleTheme() {
   darkTheme = !darkTheme;
   localStorage.setItem(THEME_KEY, darkTheme ? 'dark' : 'light');
   renderWorkspace();
+}
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  if (!session) return;
+  inactivityTimer = setTimeout(() => logout('You were signed out after 3 minutes of inactivity.'), INACTIVITY_TIMEOUT);
 }
 
 function saveData(next = data) {
@@ -927,10 +935,11 @@ function renderWorkspace() {
         <div class="sidebar-bottom"><button class="theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light theme' : '◐ Dark theme'}</button><div class="profile"><span class="avatar${isAdmin ? ' coral' : ''}">${initials(session.username)}</span><span class="profile-copy"><strong>${escapeHtml(session.username)}</strong><span>${userLabel}</span></span><button class="logout-button" type="button" data-action="logout" title="Sign out" aria-label="Sign out">&#8599;</button></div></div>
       </aside>
       <section class="main-area">
-        <header class="topbar"><span class="mobile-brand"><span class="brand-mark">O</span>openbook</span><span class="topbar-label">${escapeHtml(title)}</span><span class="topbar-actions"><span class="topbar-date">${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span><button class="topbar-theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light' : '◐ Dark'}</button></span></header>
+        <header class="topbar"><span class="mobile-brand"><span class="brand-mark">O</span>openbook</span><span class="topbar-label">${escapeHtml(title)}</span><span class="topbar-actions"><span class="topbar-date">${new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span><button class="topbar-theme-toggle" type="button" data-action="toggle-theme" aria-pressed="${darkTheme}" title="${darkTheme ? 'Switch to light theme' : 'Switch to dark theme'}">${darkTheme ? '☼ Light' : '◐ Dark'}</button><button class="mobile-logout" type="button" data-action="logout" title="Sign out" aria-label="Sign out">&#8599;</button></span></header>
         <div class="content">${impersonationBanner}${isAdmin ? adminContent(activeView) : userContent(activeView)}</div>
       </section>
     </main>`;
+  resetInactivityTimer();
 }
 
 function render() {
@@ -1147,12 +1156,15 @@ function openCloseTradeModal(tradeId) {
   backdrop.querySelector('#close-pnl').focus();
 }
 
-function logout() {
+function logout(message = '') {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = null;
   if (supabaseClient) supabaseClient.auth.signOut().catch((error) => console.error('Sign out failed:', error.message));
   sessionStorage.removeItem(SESSION_KEY);
   session = null;
   activeView = 'dashboard';
   activityTab = 'recent';
+  authMessage = message;
   renderAuth();
 }
 
@@ -1701,6 +1713,10 @@ app.addEventListener('drop', (event) => {
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') [...document.querySelectorAll('.modal-backdrop')].at(-1)?.remove();
+});
+
+['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((eventName) => {
+  window.addEventListener(eventName, resetInactivityTimer, { passive: true });
 });
 
 initializeBackend();

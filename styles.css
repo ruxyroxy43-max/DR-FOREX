@@ -112,6 +112,8 @@ a { color: inherit; }
 .topbar-actions { display: flex; align-items: center; gap: 12px; }
 .topbar-theme-toggle { min-height: 31px; padding: 0 11px; border: 1px solid var(--line); border-radius: 2px; color: var(--green); background: var(--surface); cursor: pointer; font: 10px var(--mono); }
 .topbar-theme-toggle:hover { border-color: var(--green); background: var(--green-light); }
+.mobile-logout { display: none; width: 31px; height: 31px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 2px; color: var(--green); background: var(--surface); cursor: pointer; font-size: 15px; }
+.mobile-logout:hover { border-color: var(--green); background: var(--green-light); }
 .content { width: min(100%, 1080px); margin: 0 auto; padding: 37px clamp(20px, 4.5vw, 66px) 55px; }
 .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 25px; }
 .page-heading h1 { margin: 0; font: 700 27px/1.2 var(--serif); letter-spacing: 0; }
@@ -212,7 +214,9 @@ td .mono { font-size: 10px; }
   .workspace { display: block; padding-bottom: 62px; }
   .sidebar { position: fixed; inset: auto 0 0; z-index: 4; width: 100%; height: auto; padding: 0; border-top: 1px solid var(--line); border-right: 0; background: var(--surface); }
   .sidebar > .brand, .sidebar-section, .sidebar-bottom { display: none; }
-  .sidebar .nav-list { grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .sidebar .nav-list { gap: 0; }
+  .sidebar .user-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .sidebar .admin-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .nav-item { min-height: 58px; flex-direction: column; justify-content: center; gap: 4px; padding: 6px 2px; border-radius: 0; font-size: 9px; }
   .nav-icon { font-size: 15px; }
   .nav-count { position: absolute; top: 5px; margin-left: 21px; padding: 2px 4px; font-size: 8px; }
@@ -220,6 +224,7 @@ td .mono { font-size: 10px; }
   .mobile-brand { display: flex; align-items: center; gap: 8px; font: 700 12px var(--serif); }
   .mobile-brand .brand-mark { width: 23px; height: 23px; font-size: 11px; }
   .topbar { height: 56px; padding: 0 18px; }
+  .mobile-logout { display: inline-flex; }
   .content { padding: 26px 17px 32px; }
   .page-heading { align-items: flex-start; }
   .page-heading h1 { font-size: 24px; }
@@ -819,7 +824,6 @@ td .mono { font-size: 10px; }
 .notebook-modal-actions .primary-button { border-color: #7460ef; background: #7460ef; }
 
 @media (max-width: 700px) {
-  .sidebar .user-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .notebook-notes-grid { grid-template-columns: 1fr; }
   .notebook-note-fields { grid-template-columns: 1fr; gap: 0; padding: 12px 14px 3px; }
   .notebook-modal-header { padding: 15px 14px 12px; }

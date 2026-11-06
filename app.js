@@ -408,14 +408,29 @@ function journalContent(trades) {
     const resultClass = trade.result === 'Win' ? 'win' : trade.result === 'Loss' ? 'loss' : trade.result === 'Open' ? 'open' : 'breakeven';
     const amountClass = Number(trade.pnl) > 0 ? 'positive' : Number(trade.pnl) < 0 ? 'negative' : 'neutral';
     const noteCount = data.notebookNotes.filter((note) => note.tradeId === trade.id && note.username === session.username).length;
-    return `<article class="journal-trade-card" role="button" tabindex="0" aria-label="View details for ${escapeAttribute(trade.ticker)} trade" data-action="view-trade" data-trade="${escapeAttribute(trade.id)}"><div class="journal-card-status ${resultClass}">${escapeHtml(trade.result)}</div><div class="journal-card-body"><div class="journal-card-title"><div><strong>${escapeHtml(trade.ticker)}</strong><span>${formatDate(trade.date)}</span></div><button class="journal-edit-button" type="button" data-action="edit-trade" data-trade="${escapeAttribute(trade.id)}" aria-label="Edit ${escapeAttribute(trade.ticker)} trade">&#9998;</button></div><div class="journal-card-meta"><span class="direction-tag ${trade.direction === 'Long' ? 'long' : 'short'}">${escapeHtml(trade.direction.toUpperCase())}</span><span>${escapeHtml(trade.session || 'Session not set')}</span></div><div class="journal-card-pnl"><span>REALIZED P&amp;L</span><strong class="${amountClass}">${trade.result === 'Open' ? '—' : `${Number(trade.pnl) > 0 ? '+' : ''}${formatMoney(trade.pnl)}`}</strong></div><div class="journal-card-model"><span>MODEL</span><strong>${escapeHtml(trade.model || 'Not set')}</strong></div>${trade.notes || trade.narrative ? `<p class="journal-card-note">${escapeHtml(trade.notes || trade.narrative)}</p>` : ''}<button class="journal-note-button" type="button" data-action="add-trade-note" data-trade="${escapeAttribute(trade.id)}">&#9998; Add note${noteCount ? ` · ${noteCount}` : ''}</button></div></article>`;
+    return `<article class="journal-trade-card" role="button" tabindex="0" aria-label="View details for ${escapeAttribute(trade.ticker)} trade. Double-click to edit." data-action="view-trade" data-trade="${escapeAttribute(trade.id)}"><div class="journal-card-status ${resultClass}">${escapeHtml(trade.result)}</div><div class="journal-card-body"><div class="journal-card-title"><div><strong>${escapeHtml(trade.ticker)}</strong><span>${formatDate(trade.date)}</span></div><div class="journal-card-actions"><button class="journal-edit-button" type="button" data-action="edit-trade" data-trade="${escapeAttribute(trade.id)}" aria-label="Edit ${escapeAttribute(trade.ticker)} trade">&#9998;</button><button class="journal-delete-button" type="button" data-action="delete-trade" data-trade="${escapeAttribute(trade.id)}" aria-label="Delete ${escapeAttribute(trade.ticker)} trade">&#128465;</button></div></div><div class="journal-card-meta"><span class="direction-tag ${trade.direction === 'Long' ? 'long' : 'short'}">${escapeHtml(trade.direction.toUpperCase())}</span><span>${escapeHtml(trade.session || 'Session not set')}</span></div><div class="journal-card-pnl"><span>REALIZED P&amp;L</span><strong class="${amountClass}">${trade.result === 'Open' ? '—' : `${Number(trade.pnl) > 0 ? '+' : ''}${formatMoney(trade.pnl)}`}</strong></div><div class="journal-card-model"><span>MODEL</span><strong>${escapeHtml(trade.model || 'Not set')}</strong></div>${trade.notes || trade.narrative ? `<p class="journal-card-note">${escapeHtml(trade.notes || trade.narrative)}</p>` : ''}<button class="journal-note-button" type="button" data-action="add-trade-note" data-trade="${escapeAttribute(trade.id)}">&#9998; Add note${noteCount ? ` · ${noteCount}` : ''}</button></div></article>`;
   }).join('') : '<div class="journal-empty"><strong>No trades match these filters.</strong><span>Try another pair, result, or date range.</span></div>';
   const statusOptions = ['Latest', 'Wins', 'Losses', 'Breakeven', 'Open'];
   return `<div class="page-heading journal-heading"><div><h1>Journal</h1><p>Find and edit your trades.</p></div><button class="primary-button" type="button" data-action="add-trade"><span aria-hidden="true">+</span> Add trade</button></div>
     <section class="journal-toolbar" aria-label="Filter trades"><label class="journal-search"><span aria-hidden="true">⌕</span><input id="journal-search" type="search" value="${escapeAttribute(journalFilters.query)}" placeholder="Search trades..." /></label><label class="journal-filter-select"><span class="visually-hidden">Pair</span><select id="journal-pair"><option>All pairs</option>${pairs.map((pair) => `<option${journalFilters.pair === pair ? ' selected' : ''}>${escapeHtml(pair)}</option>`).join('')}</select></label><label class="journal-filter-select"><span class="visually-hidden">Account</span><select id="journal-account"><option>All accounts</option>${accounts.map((account) => `<option${journalFilters.account === account ? ' selected' : ''}>${escapeHtml(account)}</option>`).join('')}</select></label><label class="journal-date-filter"><span class="visually-hidden">From date</span><input id="journal-from" type="date" value="${journalFilters.from}" /></label><label class="journal-date-filter"><span class="visually-hidden">To date</span><input id="journal-to" type="date" value="${journalFilters.to}" /></label><button class="journal-clear" type="button" data-action="clear-journal-filters">Clear</button></section>
     <div class="journal-status-filters" role="group" aria-label="Filter by result">${statusOptions.map((status) => `<button class="journal-status-filter${journalFilters.status === status ? ' active' : ''}" type="button" data-action="journal-status" data-status="${status}">${status}</button>`).join('')}</div>
-    <section class="local-journal-banner"><div class="local-journal-copy"><span class="local-journal-label">LOCAL JOURNAL</span><strong>Your journal is saved in this browser</strong><p>Trade edits are stored on this device. Public sharing requires a connected backend.</p></div><div class="local-journal-actions"><button type="button" data-action="save-journal">Update</button><button type="button" data-action="publish-info">Re-publish</button><button type="button" class="copy-link-button" data-action="copy-journal-link">Copy link</button></div></section>
+    <section class="local-journal-banner"><div class="local-journal-copy"><span class="local-journal-label">JOURNAL SUMMARY</span><strong>Copy every taken trade with its performance context</strong><p>The copied summary includes the journal link, totals, model results, and trade explanations.</p></div><div class="local-journal-actions"><button type="button" data-action="save-journal">Update</button><button type="button" data-action="publish-info">Re-publish</button><button type="button" class="copy-link-button" data-action="copy-journal-link">Copy summary</button></div></section>
     <div class="journal-results-heading"><span>${filtered.length} ${filtered.length === 1 ? 'TRADE' : 'TRADES'}</span><span>${journalFilters.status === 'Latest' ? 'LATEST FIRST' : escapeHtml(journalFilters.status.toUpperCase())}</span></div><section class="journal-card-grid" aria-label="Journal trades">${cards}</section>`;
+}
+
+function buildJournalSummary(trades) {
+  const metrics = userMetrics(trades);
+  const modelGroups = new Map();
+  trades.filter((trade) => trade.result === 'Win' || trade.result === 'Loss').forEach((trade) => {
+    const model = trade.model || 'Not set';
+    const group = modelGroups.get(model) || { wins: 0, total: 0 };
+    group.total += 1;
+    if (trade.result === 'Win') group.wins += 1;
+    modelGroups.set(model, group);
+  });
+  const modelSummary = [...modelGroups.entries()].map(([model, group]) => `${model}: ${Math.round(group.wins / group.total * 100)}% (${group.wins}/${group.total})`).join('; ') || 'No closed model data yet';
+  const tradeSummary = [...trades].sort((a, b) => new Date(a.date) - new Date(b.date)).map((trade) => `${formatDate(trade.date)} | ${trade.ticker} | ${trade.direction} | ${trade.result} | ${trade.result === 'Open' ? 'Open' : formatMoney(trade.pnl)} | Model: ${trade.model || 'Not set'}${trade.notes || trade.narrative ? ` | ${trade.notes || trade.narrative}` : ''}`).join('\n');
+  return `Openbook trading journal\n${location.href}\n\nSummary\nNet P&L: ${formatMoney(metrics.pnl)} | Win rate: ${metrics.winRate}% | ${metrics.wins} wins, ${metrics.losses} losses, ${metrics.breakevens} breakeven\nModels: ${modelSummary}\n\nTaken trades\n${tradeSummary || 'No trades recorded yet.'}`;
 }
 
 function tradeDetailField(label, value) {
@@ -447,7 +462,7 @@ function openTradeDetails(tradeId) {
       ${trade.riskNotes ? `<section class="trade-detail-section"><h3>Risk management</h3><p class="trade-detail-copy">${escapeHtml(trade.riskNotes)}</p></section>` : ''}
       ${trade.strategyTags?.length ? `<section class="trade-detail-section"><h3>Additional strategies</h3><div class="trade-detail-tags">${trade.strategyTags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div></section>` : ''}
       ${screenshots ? `<section class="trade-detail-section"><h3>Screenshots</h3><div class="trade-detail-screenshots">${screenshots}</div></section>` : ''}
-    </div><footer class="trade-detail-actions"><button class="ghost-button" type="button" data-action="add-trade-note" data-trade="${escapeAttribute(trade.id)}">&#9998; Add note${notesCount ? ` · ${notesCount}` : ''}</button><span></span><button class="primary-button" type="button" data-action="edit-detail-trade" data-trade="${escapeAttribute(trade.id)}">Edit trade</button></footer>
+    </div><footer class="trade-detail-actions"><button class="ghost-button" type="button" data-action="add-trade-note" data-trade="${escapeAttribute(trade.id)}">&#9998; Add note${notesCount ? ` · ${notesCount}` : ''}</button><button class="ghost-button trade-detail-delete" type="button" data-action="delete-trade" data-trade="${escapeAttribute(trade.id)}" aria-label="Delete ${escapeAttribute(trade.ticker)} trade">&#128465; Delete</button><span></span><button class="primary-button" type="button" data-action="edit-detail-trade" data-trade="${escapeAttribute(trade.id)}">Edit trade</button></footer>
   </section>`;
   app.append(backdrop);
 }
@@ -512,6 +527,28 @@ function userMetrics(trades) {
     winLossRatio,
     profitFactor: grossLosses ? (grossWins / grossLosses).toFixed(2) : '—',
   };
+}
+
+function tradeAssistant(trades) {
+  const closed = trades.filter((trade) => trade.result === 'Win' || trade.result === 'Loss');
+  const groups = new Map();
+  closed.forEach((trade) => {
+    const model = trade.model || 'Not set';
+    const group = groups.get(model) || { wins: 0, losses: 0, pnl: 0 };
+    group[trade.result === 'Win' ? 'wins' : 'losses'] += 1;
+    group.pnl += Number(trade.pnl) || 0;
+    groups.set(model, group);
+  });
+  const ranked = [...groups.entries()].map(([model, group]) => ({ model, ...group, total: group.wins + group.losses, winRate: Math.round(group.wins / (group.wins + group.losses) * 100) })).sort((a, b) => b.winRate - a.winRate || b.pnl - a.pnl);
+  const reliable = ranked.filter((group) => group.total >= 3);
+  const leader = reliable[0] || ranked[0];
+  const assistantMessage = !closed.length
+    ? 'Log at least one closed win or loss for model analysis to begin.'
+    : reliable.length
+      ? `${leader.model} is your strongest observed model at ${leader.winRate}% from ${leader.total} closed trades. Keep collecting data before increasing risk.`
+      : 'There is not enough history to call a best model yet. Treat the current leader as an early signal, not a prediction.';
+  const modelRows = ranked.length ? ranked.slice(0, 4).map((group) => `<div class="assistant-model-row"><span>${escapeHtml(group.model)}</span><strong>${group.winRate}%</strong><small>${group.wins}W · ${group.losses}L · ${formatMoney(group.pnl)}</small></div>`).join('') : '<div class="assistant-empty">Your model breakdown will appear after closed trades.</div>';
+  return `<section class="panel trade-assistant"><div class="panel-head"><div><h2>Trade assistant</h2><span class="panel-kicker">DATA-BASED GUIDANCE</span></div><span class="assistant-disclaimer">Not financial advice</span></div><div class="assistant-body"><div class="assistant-lead"><span class="assistant-spark">✦</span><div><strong>Best observed model</strong><p>${assistantMessage}</p></div></div><div class="assistant-models"><div class="assistant-models-heading"><span>MODEL PERFORMANCE</span><span>WIN RATE</span></div>${modelRows}</div></div></section>`;
 }
 
 function performanceRadar(metrics) {
@@ -862,7 +899,7 @@ function userContent(view) {
 
   return `
     <div class="page-heading"><div><h1>Good ${greeting()}, ${escapeHtml(session.username.toLowerCase())}.</h1><p>Here's your trading activity at a glance.</p></div><div class="heading-actions"><button class="ghost-button start-day-button" type="button" data-view="session-prep">&#10022; Start my day</button><button class="primary-button" type="button" data-action="add-trade"><span aria-hidden="true">+</span> <span class="button-word">Log a trade</span></button></div></div>
-    ${userRecommendations}<div class="trader-overview-grid"><section class="metric-grid trader-metrics" aria-label="Trading performance summary">${metricCards}</section>${monthCalendar(trades)}</div>
+    ${userRecommendations}${tradeAssistant(trades)}<div class="trader-overview-grid"><section class="metric-grid trader-metrics" aria-label="Trading performance summary">${metricCards}</section>${monthCalendar(trades)}</div>
     <div class="score-insights-grid"><div class="score-column"><section class="panel performance-score-panel"><div class="panel-head"><div><h2>Performance score</h2><span class="panel-kicker">JOURNAL METRICS</span></div><span class="panel-kicker">5 FACTORS</span></div><div class="score-content">${performanceRadar(metrics)}<div class="score-result"><strong>${metrics.performanceScore}</strong><span>YOUR SCORE</span><b>${metrics.performanceScore >= 80 ? 'Strong habits' : metrics.performanceScore >= 60 ? 'Building consistency' : metrics.performanceScore ? 'Room to improve' : 'Log closed trades to begin'}</b></div></div><p class="score-disclaimer">Composite of win rate, average win/loss, profit factor, profitable days, and drawdown control.</p></section>${progressTracker(metrics)}</div><div class="insights-stack">${recentActivityPanel(trades)}<div class="breakdown-grid">${winRatePanel(trades, 'model', 'Win rate by model')}${winRatePanel(trades, 'session', 'Win rate by session')}</div>${weekdayPanel(trades)}</div></div>`;
 }
 
@@ -1168,6 +1205,17 @@ function logout(message = '') {
   renderAuth();
 }
 
+function deleteTrade(tradeId) {
+  const trade = data.trades.find((entry) => entry.id === tradeId && entry.username === session.username);
+  if (!trade || !window.confirm(`Delete the ${trade.ticker} trade for ${formatMoney(trade.pnl)}?`)) return;
+  data.trades = data.trades.filter((entry) => entry.id !== tradeId || entry.username !== session.username);
+  data.notebookNotes = data.notebookNotes.filter((note) => note.tradeId !== tradeId || note.username !== session.username);
+  document.querySelector('.trade-detail-backdrop')?.remove();
+  saveData();
+  renderWorkspace();
+  showToast(`${trade.ticker} trade deleted.`);
+}
+
 function impersonateUser(username) {
   if (!session || session.role !== 'admin') return;
   const user = data.users.find((entry) => entry.username === username && entry.status === 'approved' && entry.role !== 'admin');
@@ -1453,6 +1501,7 @@ app.addEventListener('click', async (event) => {
     renderWorkspace();
     showToast('Notebook note deleted.');
   }
+  if (action === 'delete-trade') deleteTrade(actionButton.dataset.trade);
   if (action === 'note-command') {
     document.querySelector('#notebook-note-content')?.focus();
     document.execCommand(actionButton.dataset.command, false, actionButton.dataset.value || null);
@@ -1484,9 +1533,9 @@ app.addEventListener('click', async (event) => {
   }
   if (action === 'publish-info') showToast('Public publishing requires a connected backend.');
   if (action === 'copy-journal-link') {
-    navigator.clipboard?.writeText(location.href)
-      .then(() => showToast('Page link copied. Trades remain stored in this browser.'))
-      .catch(() => showToast('Copy unavailable here. Trade data remains local to this browser.'));
+    navigator.clipboard?.writeText(buildJournalSummary(currentUserTrades()))
+      .then(() => showToast('Journal summary and trade link copied.'))
+      .catch(() => showToast('Copy unavailable here.'));
   }
   if (action === 'set-account-size') openAccountSizeModal();
   if (action === 'view-analytics') {
@@ -1537,6 +1586,17 @@ app.addEventListener('keydown', (event) => {
   if ((event.key !== 'Enter' && event.key !== ' ') || !event.target.matches('.journal-trade-card')) return;
   event.preventDefault();
   openTradeDetails(event.target.dataset.trade);
+});
+
+app.addEventListener('dblclick', (event) => {
+  const card = event.target.closest('.journal-trade-card');
+  if (!card || event.target.closest('button')) return;
+  editingTradeId = card.dataset.trade;
+  addNoteAfterTradeSave = false;
+  const trade = data.trades.find((entry) => entry.id === editingTradeId && entry.username === session.username);
+  uploadedScreenshots = [...(trade?.screenshots || [])];
+  activeView = 'edit-trade';
+  renderWorkspace();
 });
 
 function updateRiskReward() {
